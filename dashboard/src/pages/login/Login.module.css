@@ -1,0 +1,8 @@
+.loginBackground {
+    width: 100vw;
+    height: 100vh;
+    background: url('../../assets/loginbackground.jpg');
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

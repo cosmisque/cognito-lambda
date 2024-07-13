@@ -1,0 +1,33 @@
+.header {
+  height: 56px;
+  background-color: white;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+
+.inner {
+  height: 56px;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.link {
+  display: block;
+  line-height: 1;
+  padding: 8px 12px;
+  border-radius: var(--mantine-radius-sm);
+  text-decoration: none;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-lime-0));
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+
+
+}
+
+.linkLabel {
+  margin-right: rem(5px);
+}

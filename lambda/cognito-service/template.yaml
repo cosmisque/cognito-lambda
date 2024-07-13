@@ -1,0 +1,314 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  cognito dashboard
+
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+    Tracing: Active
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true
+Resources:
+  DashboardApi:
+    Type: AWS::Serverless::Api
+    DependsOn: 
+      - ApiCWLRoleArn
+    Properties:
+      StageName: dev
+      Cors:
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowMethods: "'GET,PUT,OPTIONS,PUT,DELETE'"
+        AllowOrigin: "'http://localhost:3000'"
+        AllowCredentials: true
+      Auth:
+        Authorizers:
+            CognitoAuthorizer:
+              UserPoolArn: "arn:aws:cognito-idp:ap-southeast-1:215690879039:userpool/ap-southeast-1_EkmsQuW6f"
+
+  ApiCWLRoleArn:
+    Type: AWS::ApiGateway::Account
+    Properties: 
+      CloudWatchRoleArn: !GetAtt CloudWatchRole.Arn
+
+  CloudWatchRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            Action: 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Path: /
+        ManagedPolicyArns:
+          - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+
+
+  ListUserPools:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.listUserPools
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:ListUserPools
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/list-user-pools
+            Method: get
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+
+  CreateUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.createUser
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminCreateUser
+              - cognito-idp:AdminSetUserPassword
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/create-user
+            Method: post
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+ 
+
+  ListUsersInPool:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.listUsersInPool
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:ListUsers
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/list-users
+            Method: get
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+           
+  DeleteUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.deleteUser
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminDeleteUser
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/delete-user
+            Method: delete
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  UpdateUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.updateUser
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminUpdateUserAttributes
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/update-user
+            Method: put
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  
+  GetUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.getUser
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/get-user
+            Method: get
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+          
+
+  GetUserPoolAttributes:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.getUserPoolAttributes
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:DescribeUserPool
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/get-pool-attributes
+            Method: get
+            RestApiId: !Ref DashboardApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+
+  ActivateAdminUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.activateAdminUser
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminSetUserPassword
+              - cognito-idp:AdminInitiateAuth
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/activate
+            Method: post
+            RestApiId: !Ref DashboardApi
+
+
+  Login:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.login
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminInitiateAuth
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/login
+            Method: post
+            RestApiId: !Ref DashboardApi
+
+  RefreshToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.refresh
+      Runtime: nodejs20.x
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:InitiateAuth
+            Resource: '*'
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/refresh
+            Method: get
+            RestApiId: !Ref DashboardApi
+
+  ValidateToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: app.validate
+      Runtime: nodejs20.x
+      Events:
+        AdminCognitoApi:
+          Type: Api
+          Properties:
+            Path: /api/validate
+            Method: get
+            RestApiId: !Ref DashboardApi
+
+  Logout:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: ./
+        Handler: app.logout
+        Runtime: nodejs20.x
+        Events:
+          AdminCognitoApi:
+            Type: Api
+            Properties:
+              Path: /api/logout
+              Method: get
+              RestApiId: !Ref DashboardApi

@@ -1,0 +1,21 @@
+{
+  "name": "hello_world",
+  "version": "1.0.0",
+  "description": "hello world sample for NodeJS",
+  "main": "app.js",
+  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {
+    "axios": ">=1.6.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.525.0"
+  },
+  "scripts": {
+    "test": "mocha tests/unit/"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.525.0",
+    "aws-jwt-verify": "^4.0.1",
+    "aws-sdk": "^2.1567.0"
+  }
+}
