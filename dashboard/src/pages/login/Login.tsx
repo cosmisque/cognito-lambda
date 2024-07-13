@@ -12,6 +12,7 @@ import { useAuth } from '../../context/auth';
 import accountImage from '../../assets/account.png';
 import classes from './Login.module.css';
 import ErrorMsg from '../../components/text/ErrorMsg';
+import { useEffect } from 'react';
 
 interface ILoginFormValue {
   username: string;
@@ -19,13 +20,20 @@ interface ILoginFormValue {
 }
 
 const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const {
     handleSubmit,
     control,
     formState: { errors }
   } = useForm<ILoginFormValue>();
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, []);
 
   const onSubmit = async ({ username, password }: ILoginFormValue) => {
     const res = await login(username, password);
